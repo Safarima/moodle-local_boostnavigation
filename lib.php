@@ -36,7 +36,6 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
     // Fetch config.
     $config = get_config('local_boostnavigation');
 
-
     // Include local library.
     require_once(__DIR__ . '/locallib.php');
 
@@ -167,7 +166,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
             require_once($CFG->dirroot . '/lib/badgeslib.php');
 
             // Get number of badges in course.
-            $totalbadges = count(badges_get_badges(BADGE_TYPE_COURSE, $PAGE->course->id, '', '' , 0, 0));
+            $totalbadges = count(badges_get_badges(BADGE_TYPE_COURSE, $PAGE->course->id, '', '', 0, 0));
 
             // Only proceed if there are no badges in course.
             if ($totalbadges == 0) {
@@ -275,7 +274,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                         // Note: We are somehow abusing the hidden node attribute here for our own purposes. In Boost core, it is
                         // set to true for invisible sections, but these are currently displayed just as visible sections in the
                         // nav drawer, so we accept this abuse.
-                        $userprefcoursesectionsnode = get_user_preferences('local_boostnavigation-collapse_'.
+                        $userprefcoursesectionsnode = get_user_preferences('local_boostnavigation-collapse_' .
                             'localboostnavigationcoursesectionsnode', $config->collapsecoursesectionscoursenodedefault);
                         if ($userprefcoursesectionsnode == 1) {
                             $coursesectionsnode->collapse = true;
@@ -413,7 +412,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                                 new moodle_url('/course/resources.php', array('id' => $COURSE->id)),
                                 global_navigation::TYPE_ACTIVITY,
                                 null,
-                                'localboostnavigationactivity'.$modname,
+                                'localboostnavigationactivity' . $modname,
                                 new pix_icon('resources', '', 'local_boostnavigation'));
                             // Add the activity course node to the coursehome node.
                             $coursehomenode->add_node($activitynode);
@@ -424,10 +423,10 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                         // Process all other activity types.
                     } else {
                         $activitynode = navigation_node::create($modfullname,
-                            new moodle_url('/mod/'.$modname.'/index.php', array('id' => $COURSE->id)),
+                            new moodle_url('/mod/' . $modname . '/index.php', array('id' => $COURSE->id)),
                             global_navigation::TYPE_ACTIVITY,
                             null,
-                            'localboostnavigationactivity'.$modname,
+                            'localboostnavigationactivity' . $modname,
                             new pix_icon('activities', '', 'local_boostnavigation'));
                         // Add the activity course node to the coursehome node.
                         $coursehomenode->add_node($activitynode);
@@ -447,7 +446,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                         // Get the user preference for the collapse state of the activities node and set the collapse and hidden
                         // node attributes of the activity nodes accordingly. At the same time, reallocate the parent of the
                         // existing section nodes.
-                        $userprefactivitiesnode = get_user_preferences('local_boostnavigation-collapse_'.
+                        $userprefactivitiesnode = get_user_preferences('local_boostnavigation-collapse_' .
                             'localboostnavigationactivitiesnode', $config->collapseactivitiescoursenodedefault);
                         if ($userprefactivitiesnode == 1) {
                             $activitiesnode->collapse = true;
@@ -478,45 +477,30 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
         }
     }
 
-    // Extend Navigation Test
+    // Extend Navigation Test.
 
-
-    // Insert category node for users
-    ////// Test
-    // fetch of course home node and use its id to get the category of the course
+    // Insert category node for users.
+    //////Test.
+    // Fetch of course home node and use its id to get the category of the course.
     $coursehomenode = $PAGE->navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
     $allsectionnodes = $coursehomenode->children->type(navigation_node::TYPE_SECTION);
     $id = $DB->get_record('course', array('id' => $COURSE->id), $fields = 'category', MUST_EXIST)->category;
 
-    if($id != 0) {
+    if ($id != 0) {
         $categoryname = $DB->get_record('course_categories', array('id' => $id), 'name', MUST_EXIST)->name;
-        //$categoryname ='Mini';
-        var_dump($categoryname);
-        $categoryurl = '/course/index.php?categoryid=' . $id;
-        $node = $categoryname . '|' . $categoryurl;
 
-        if($coursehomenode) {
+        if (!empty($coursehomenode)) {
             $categorynode = navigation_node::create($categoryname,
-                new moodle_url('/course/view.php', array('id' => $COURSE->id)), // We have to add a URL to the course node,
-                // otherwise the node wouldn't be added to
-                // the flat navigation by Boost.
-                // There is no better choice than the course
-                // home page.
+                // Url that is opened when clicking on the link in the breadcrumb menu.
+                new moodle_url('/course/index.php', array('categoryid' => $id)),
                 global_navigation::TYPE_CUSTOM,
                 null, 'coursecategory');
-            // Prevent that the coursesections course node is marked as active and added to the breadcrumb when showing the
+            // Prevent that the category node is marked as active and added to the breadcrumb when showing the
             // course home page.
-            $categorynode->make_inactive();
-            // Add the coursesection node before the first section node.
-            $firstnode = $coursehomenode->get_children_key_list()[0];
-            // Add the menu item to the menu, before the first node.
-            // $coursehomenode->add_node($categorynode, $firstnode);
+            //$categorynode->make_inactive();
+
             $navigation->add_node($categorynode);
-            // $coursehomenode->add_node($coursesectionsnode);
-
-
             $categorynode->type = 60;
-            // $categorynode->nodetype = 0;
             $categorynode->collapse = false;
             $categorynode->forceopen = true;
             $categorynode->isexpandable = true;
@@ -527,17 +511,18 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
             $collapsenodesforjs[] = 'coursecategory';
             $url = $categorynode->action->out_as_local_url();
             $urlpath = parse_url($url, PHP_URL_PATH);
-            $categoryCourses = $DB->get_records('course', array('category' => 1), '', '*', 0, 3, MUST_EXIST);
+            // Get the courses that belong to the category.
+            $categorycourses = $DB->get_records('course', array('category' => $id), '', '*', 0, '', MUST_EXIST);
 
-            foreach ($categoryCourses as $course) {
-                $categorycoursenode= $categorynode->add($course->shortname);
-                //$categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
-
-                //$categorycoursenode->set_indent = 0;
-
-                $categorynode->add($categorycoursenode);
-                $categorynode->set_parent($categorycoursenode);
+            // Add every course as a child coursenode to the categorynode.
+            foreach ($categorycourses as $course) {
+                $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
+                // Prevent redundant coursenodes in navigation.
+                $categorycoursenode->remove();
+                $categorycoursenode->set_indent = 0;
+                $categorynode->add_node($categorycoursenode);
                 $categorynode->collapse = true;
+                // Get all childkeys of the categorynode and set properties.
                 $categorynodechildrennodeskeys = $categorynode->get_children_key_list();
                 foreach ($categorynodechildrennodeskeys as $k) {
                     $childnode = $categorynode->get($k);
@@ -545,9 +530,6 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                     $childnode->isexpandable = false;
                     $childnode->set_indent = 0;
                 }
-
-                $categorycoursenode->set_indent = 0;
-
 
                 if ($categorycoursenode) {
                     $categorycoursenode->showinflatnavigation = true;
@@ -558,60 +540,9 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                 }
             }
 
-
-            /*  foreach($categoryCourses as $value){
-
-                  $coursenames[] = $value->shortname;
-              }
-              foreach($coursenames as $value){
-
-                  $categorycoursenode = $categorynode->add($value, null, navigation_node::TYPE_CUSTOM, null, 'categorycourse');
-                  $categorycoursenode->make_inactive();
-                  $categorynode->collapse = false;
-                  $categorynode->forceopen = true;
-                  $categorynode->isexpandable = true;
-                  // $categorynode->indent=false;
-                  $categorynode->type=0;
-                  $categorynode->preceedwithhr=0;
-                  $categorynode->forceopen=true;
-
-              }*/
-            $child = $categorynode->get_children_key_list();
-            if (count($child) > 0) {
-                $main_node = $navigation->add('TestExtend');
-                $main_node->type = 60;
-                $main_node->nodetype = 0;
-                $main_node->collapse = false;
-                $main_node->forceopen = true;
-                $main_node->isexpandable = true;
-                $main_node->showinflatnavigation = true;
-
-                $course_node = $main_node->add('Course report', new moodle_url('/local/report/course.php'));
-                $user_node = $main_node->add('User report', new moodle_url('/local/report/user.php'));
-                $certificate_node = $main_node->add('Certificate report', new moodle_url('/local/report/certificate.php'));
-
-                $course_node->set_parent($main_node);
-                $user_node->set_parent($main_node);
-                $certificate_node->set_parent($main_node);
-
-                $course_node->set_indent = 0;
-
-            } else {
-
-            }
-
         }
 
     }
-
-    /* $categorynode = local_boostnavigation_build_custom_nodes($node,$navigation,
-         'localboostnavigationcustomrootusers', true, $config->collapsecustomnodesusers,
-         $config->collapsecustomnodesusersdefault);
-     if (!empty($collapsenodesforjs) && is_array($collapsenodesforjs)) {
-         $collapsenodesforjs = array_merge($collapsenodesforjs, $categorynode);
-     } else {
-         $collapsenodesforjs = $categorynode;
-     }*/
 
 //////// Test Ende
 
@@ -621,7 +552,6 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
         $customnodesret = local_boostnavigation_build_custom_nodes($config->insertcustomnodesusers, $navigation,
             'localboostnavigationcustomrootusers', true, $config->collapsecustomnodesusers,
             $config->collapsecustomnodesusersdefault);
-
 
         // Check if admin wanted us to also collapse the custom nodes for users.
         if ($config->collapsecustomnodesusers == true) {
@@ -682,7 +612,6 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                 'localboostnavigationcustomcourseadmins', false, $config->collapsecustomcoursenodesadmins,
                 $config->collapsecustomcoursenodesadminsdefault);
 
-
             // Check if admin wanted us to also collapse the custom course nodes for admins.
             if ($config->collapsecustomcoursenodesadmins == true) {
                 // Remember the collapsible node for JavaScript.
@@ -719,8 +648,6 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
         $customnodesret = local_boostnavigation_build_custom_nodes($config->insertcustombottomnodesadmins, $navigation,
             'localboostnavigationcustombottomadmins', true, $config->collapsecustombottomnodesadmins,
             $config->collapsecustombottomnodesadminsdefault);
-
-
         // Check if admin wanted us to also collapse the custom bottom nodes for admins.
         if ($config->collapsecustombottomnodesadmins == true) {
             // Remember the collapsible node for JavaScript.
@@ -738,7 +665,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
         $PAGE->requires->js_call_amd('local_boostnavigation/collapsenavdrawernodes', 'init', [$collapsenodesforjs]);
         // Allow updating the necessary user preferences via Ajax.
         foreach ($collapsenodesforjs as $node) {
-            user_preference_allow_ajax_update('local_boostnavigation-collapse_'.$node.'node', PARAM_BOOL);
+            user_preference_allow_ajax_update('local_boostnavigation-collapse_' . $node . 'node', PARAM_BOOL);
         }
     }
 }

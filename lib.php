@@ -516,10 +516,14 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
 
             // Add every course as a child coursenode to the categorynode.
             foreach ($categorycourses as $course) {
-                $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
+                // prevent that the coursehomenode is added redundantly
+                if ($course->id != $COURSE->id) {
+                    $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
+
                 // Prevent redundant coursenodes in navigation.
-                $categorycoursenode->remove();
-                $categorycoursenode->set_indent = 0;
+                    $categorycoursenode->remove();
+
+                    $categorycoursenode->set_indent = 0;
                 $categorynode->add_node($categorycoursenode);
                 $categorynode->collapse = true;
                 // Get all childkeys of the categorynode and set properties.
@@ -538,6 +542,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                         $categorycoursenode->showinflatnavigation = true;
                     }
                 }
+            }
             }
 
         }

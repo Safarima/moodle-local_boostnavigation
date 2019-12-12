@@ -476,7 +476,18 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
             }
         }
     }
+    // Add category as breadcrumb node for my courses
+   /* $mycourseschildrennodeskeys;
+    $categorynode = navigation_node::create($categoryname,
+        // Url that is opened when clicking on the link in the breadcrumb menu.
+        new moodle_url('/course/index.php', array('categoryid' => $id)),
+        global_navigation::TYPE_CUSTOM,
+        null, 'coursecategory');
+    // Prevent that the category node is marked as active and added to the breadcrumb when showing the
+    // course home page.
+    //$categorynode->make_inactive();
 
+    $navigation->add_node($categorynode);*/
     // Extend Navigation Test.
 
     // Insert category node for users.
@@ -517,36 +528,40 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
             // Add every course as a child coursenode to the categorynode.
             foreach ($categorycourses as $course) {
                 // prevent that my courses are added redundantly
-                foreach ($mycourseschildrennodeskeys as $k) {
+                if($course->id != $COURSE->id) {
 
-                    if ($course->id != $k && $course->id != $COURSE->id) {
-                        $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
 
-                        // Prevent redundant coursenodes in navigation.
-                        $categorycoursenode->remove();
+                    foreach ($mycourseschildrennodeskeys as $k) {
+                        var_dump($mycourseschildrennodeskeys);
+                        var_dump($k);
+                        if ($course->id != $k) {
+                            $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
 
-                        $categorycoursenode->set_indent = 0;
-                        $categorynode->add_node($categorycoursenode);
-                        $categorynode->collapse = true;
-                        // Get all childkeys of the categorynode and set properties.
-                        $categorynodechildrennodeskeys = $categorynode->get_children_key_list();
-                        foreach ($categorynodechildrennodeskeys as $k) {
-                            $childnode = $categorynode->get($k);
-                            $childnode->hidden = true;
-                            $childnode->isexpandable = false;
-                            $childnode->set_indent = 0;
-                        }
+                            // Prevent redundant coursenodes in navigation.
+                            $categorycoursenode->remove();
 
-                        if ($categorycoursenode) {
-                            $categorycoursenode->showinflatnavigation = true;
-                            // Check if we should also add this to the flat nav as well.
-                            if (isset($flatnavcourses[$course->id])) {
-                                $categorycoursenode->showinflatnavigation = true;
+                            $categorycoursenode->set_indent = 0;
+                            $categorynode->add_node($categorycoursenode);
+                            $categorynode->collapse = true;
+                            // Get all childkeys of the categorynode and set properties.
+                            $categorynodechildrennodeskeys = $categorynode->get_children_key_list();
+                            foreach ($categorynodechildrennodeskeys as $k) {
+                                $childnode = $categorynode->get($k);
+                                $childnode->hidden = true;
+                                $childnode->isexpandable = false;
+                                $childnode->set_indent = 0;
                             }
+
+                            if ($categorycoursenode) {
+                                $categorycoursenode->showinflatnavigation = true;
+                                // Check if we should also add this to the flat nav as well.
+                                if (isset($flatnavcourses[$course->id])) {
+                                    $categorycoursenode->showinflatnavigation = true;
+                                }
+                            }
+                        } else {
+                            break;
                         }
-                    }
-                    else{
-                        break;
                     }
                 }
 

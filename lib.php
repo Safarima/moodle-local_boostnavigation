@@ -519,7 +519,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                 // prevent that my courses are added redundantly
                 foreach ($mycourseschildrennodeskeys as $k) {
 
-                    if ($course->id != $k) {
+                    if ($course->id != $k && $course->id != $COURSE->id) {
                         $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
 
                         // Prevent redundant coursenodes in navigation.

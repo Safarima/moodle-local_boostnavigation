@@ -504,7 +504,7 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
             $categorynode = navigation_node::create($categoryname,
                 // Url that is opened when clicking on the link in the breadcrumb menu.
                 new moodle_url('/course/index.php', array('categoryid' => $id)),
-                global_navigation::TYPE_CUSTOM,
+                global_navigation::TYPE_CATEGORY,
                 null, 'coursecategory');
             // Prevent that the category node is marked as active and added to the breadcrumb when showing the
             // course home page.
@@ -522,6 +522,8 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
             $collapsenodesforjs[] = 'coursecategory';
             $url = $categorynode->action->out_as_local_url();
             $urlpath = parse_url($url, PHP_URL_PATH);
+
+
             // Get the courses that belong to the category.
             $categorycourses = $DB->get_records('course', array('category' => $id), '', '*', 0, '', MUST_EXIST);
 
@@ -532,8 +534,8 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
 
 
                     foreach ($mycourseschildrennodeskeys as $k) {
-                        var_dump($mycourseschildrennodeskeys);
-                        var_dump($k);
+
+
                         if ($course->id != $k) {
                             $categorycoursenode = $navigation->add_course($course, false, global_navigation::TYPE_CUSTOM);
 
@@ -566,6 +568,24 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                 }
 
             }
+
+
+            //$value=$PAGE->navbar->get_items();
+
+           /* var_dump($value);
+            var_dump($value[1]->key);
+            print_r(strval($value[1]->key));*/
+            //$value=$PAGE->navbar->get_items();
+
+
+                $PAGE->navbar->add($categoryname,
+                    // Url that is opened when clicking on the link in the breadcrumb menu.
+                    new moodle_url('/course/index.php', array('categoryid' => $id)),
+                    global_navigation::TYPE_CATEGORY,
+                    null, 'coursecategory');
+                $value=$PAGE->navbar->get_items()[1];
+
+
 
         }
 
